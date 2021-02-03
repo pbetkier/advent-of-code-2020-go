@@ -81,10 +81,12 @@ func doDay18Part1SingleExpr(expr string, i *int) int {
 }
 
 func day18Part2SingleExpr(expr string) int {
-	return doDay18Part2SingleExpr(expr, new(int), 0, false)
+	return doDay18Part2SingleExpr(expr, new(int))
 }
 
-func doDay18Part2SingleExpr(expr string, i *int, acc int, stopAtMul bool) int {
+func doDay18Part2SingleExpr(expr string, i *int) int {
+	acc := 0
+
 	for *i < len(expr) {
 		c := expr[*i]
 		*i += 1
@@ -92,21 +94,16 @@ func doDay18Part2SingleExpr(expr string, i *int, acc int, stopAtMul bool) int {
 		case ' ', '+':
 			continue
 		case '*':
-			if stopAtMul {
-				*i -= 1
-				return acc
-			} else {
-				acc *= doDay18Part2SingleExpr(expr, i, 0, true)
+			acc *= doDay18Part2SingleExpr(expr, i)
+			if expr[*i-1] == ')' {
+				*i -= 1 // let '(' subroutine consume its matching ')'
 			}
-		case ')':
-			if stopAtMul {
-				*i -= 1
-			}
-			return acc
 		case '(':
-			acc += doDay18Part2SingleExpr(expr, i, 0, false)
+			acc += doDay18Part2SingleExpr(expr, i)
+		case ')':
+			return acc
 		default:
-			acc += int(c-'0')
+			acc += int(c - '0')
 		}
 	}
 
