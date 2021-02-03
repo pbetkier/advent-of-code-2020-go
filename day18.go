@@ -60,7 +60,7 @@ func doDay18Part1SingleExpr(expr string, i *int) int {
 	op := add
 
 	for ; *i < len(expr); *i += 1 {
-		switch char := expr[*i]; char {
+		switch c := expr[*i]; c {
 		case ' ':
 			continue
 		case '+':
@@ -73,7 +73,7 @@ func doDay18Part1SingleExpr(expr string, i *int) int {
 		case ')':
 			return acc
 		default:
-			acc = op(acc, int(char-'0'))
+			acc = op(acc, int(c-'0'))
 		}
 	}
 
@@ -81,36 +81,32 @@ func doDay18Part1SingleExpr(expr string, i *int) int {
 }
 
 func day18Part2SingleExpr(expr string) int {
-	return doDay18Part2SingleExpr(expr, new(int))
+	return doDay18Part2SingleExpr(expr, new(int), 0, false)
 }
 
-func doDay18Part2SingleExpr(expr string, i *int) int {
-	acc := 0
-	op := uint8('+')
-
-	for ; *i < len(expr); *i += 1 {
-		switch char := expr[*i]; char {
-		case ' ':
+func doDay18Part2SingleExpr(expr string, i *int, acc int, stopAtMul bool) int {
+	for *i < len(expr) {
+		c := expr[*i]
+		*i += 1
+		switch c {
+		case ' ', '+':
 			continue
-		case '+', '*':
-			op = char
-		case '(':
-			*i += 1
-			switch op {
-			case '+':
-				acc = add(acc, doDay18Part2SingleExpr(expr, i))
-			case '*':
-				acc = mul(acc, doDay18Part2SingleExpr(expr, i))
+		case '*':
+			if stopAtMul {
+				*i -= 1
+				return acc
+			} else {
+				acc *= doDay18Part2SingleExpr(expr, i, 0, true)
 			}
 		case ')':
-			return acc
-		default:
-			switch op {
-			case '+':
-				acc = add(acc, int(char-'0'))
-			case '*':
-				acc = mul(acc, doDay18Part2SingleExpr(expr, i))
+			if stopAtMul {
+				*i -= 1
 			}
+			return acc
+		case '(':
+			acc += doDay18Part2SingleExpr(expr, i, 0, false)
+		default:
+			acc += int(c-'0')
 		}
 	}
 
