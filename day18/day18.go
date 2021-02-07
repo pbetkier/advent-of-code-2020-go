@@ -1,9 +1,8 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
+	"github.com/pbetkier/advent-of-code-2020-go/read"
 )
 
 func day18Part1() int {
@@ -15,7 +14,7 @@ func day18Part2() int {
 }
 
 func day18(computeSingle func(string) int) int {
-	exprs, err := readDay18("testdata/day18-input")
+	exprs, err := read.Lines("day18/input")
 	if err != nil {
 		panic(err)
 	}
@@ -25,22 +24,6 @@ func day18(computeSingle func(string) int) int {
 		result += computeSingle(e)
 	}
 	return result
-}
-
-func readDay18(path string) ([]string, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	var text []string
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		text = append(text, scanner.Text())
-	}
-
-	return text, nil
 }
 
 func add(a int, b int) int {
