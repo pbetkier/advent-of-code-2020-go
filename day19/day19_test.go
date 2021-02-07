@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 )
 
@@ -35,7 +34,7 @@ aaaabbb`, 2},
 
 	for i, c := range cases {
 		t.Run(fmt.Sprintf("solves #%d", i), func(t *testing.T) {
-			if got := day19(strings.Split(c.input, "\n")); got != c.want {
+			if got := day19(c.input); got != c.want {
 				t.Errorf("got %d; want %d", got, c.want)
 			}
 		})
