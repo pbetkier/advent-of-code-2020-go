@@ -10,14 +10,76 @@ import (
 )
 
 func day19(input string) int {
-	var rules = make([]rule, 0)
+	rules, messages := parse(input)
+
+	valid := toSet(validMessages(rules, 0))
+
+	validCount := 0
+	for _, m := range messages {
+		if _, ok := valid[m]; ok {
+			validCount += 1
+		}
+	}
+	return validCount
+}
+
+func toSet(keys []string) map[string]struct{} {
+	var result = make(map[string]struct{})
+	for _, c := range keys {
+		result[c] = struct{}{}
+	}
+	return result
+}
+
+func validMessages(rules []rule, nextRuleIndex int) []string {
+	nextRule := rules[nextRuleIndex]
+
+	if nextRule.char != 0 {
+		return []string{string(nextRule.char)}
+	}
+
+	var result = make([]string, 0)
+
+	for _, alt := range nextRule.subRulesAlts {
+		var messagePartsOptions = make([][]string, 0)
+		for _, sr := range alt.subRules {
+			messagePartsOptions = append(messagePartsOptions, validMessages(rules, sr))
+		}
+
+		result = append(result, cartesianProduct(messagePartsOptions...)...)
+	}
+
+	return result
+}
+
+func cartesianProduct(sets ...[]string) []string {
+	return doCartesianProduct(sets, "")
+}
+
+func doCartesianProduct(sets [][]string, prefix string) []string {
+	if len(sets) == 0 {
+		return []string{prefix}
+	}
+
+	var result = make([]string, 0)
+	for _, s := range sets[0] {
+		result = append(result, doCartesianProduct(sets[1:], prefix+s)...)
+	}
+
+	return result
+}
+
+func parse(input string) ([]rule, []string) {
+	var messages = make([]string, 0)
 
 	split := strings.Split(input, "\n\n")
 	if len(split) != 2 {
 		log.Fatalf("cannot parse '%s', no empty line", input)
 	}
 
-	for i, s := range strings.Split(split[0], "\n") {
+	ruleLines := strings.Split(split[0], "\n")
+	var rules = make([]rule, len(ruleLines))
+	for _, s := range ruleLines {
 		split := strings.SplitN(s, ": ", 2)
 		if len(split) != 2 {
 			log.Fatalf("cannot parse '%s'", s)
@@ -27,20 +89,20 @@ func day19(input string) int {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if ruleIndex != i {
-			log.Fatalf("expected rule index '%d' to equal '%d'", ruleIndex, i)
-		}
 
 		rule, err := parseRule(split[1])
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		rules = append(rules, rule)
+		rules[ruleIndex] = rule
 	}
 
-	fmt.Println(rules)
-	return -1
+	for _, s := range strings.Split(split[1], "\n") {
+		messages = append(messages, s)
+	}
+
+	return rules, messages
 }
 
 type rule struct {
