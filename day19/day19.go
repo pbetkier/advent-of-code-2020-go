@@ -7,6 +7,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 func day19(input string) int {
@@ -39,34 +40,43 @@ func validMessages(rules []rule, nextRuleIndex int) []string {
 	}
 
 	var result = make([]string, 0)
-
 	for _, alt := range nextRule.subRulesAlts {
 		var messagePartsOptions = make([][]string, 0)
 		for _, sr := range alt.subRules {
 			messagePartsOptions = append(messagePartsOptions, validMessages(rules, sr))
 		}
 
-		result = append(result, cartesianProduct(messagePartsOptions...)...)
+		for c := range cartesianProduct(messagePartsOptions...) {
+			result = append(result, c)
+		}
 	}
 
 	return result
 }
 
-func cartesianProduct(sets ...[]string) []string {
-	return doCartesianProduct(sets, "")
+func cartesianProduct(sets ...[]string) chan string {
+	result := make(chan string)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go doCartesianProduct(sets, "", &wg, result)
+	go func() {
+		wg.Wait()
+		close(result)
+	}()
+	return result
 }
 
-func doCartesianProduct(sets [][]string, prefix string) []string {
+func doCartesianProduct(sets [][]string, prefix string, wg *sync.WaitGroup, result chan string) {
+	defer wg.Done()
 	if len(sets) == 0 {
-		return []string{prefix}
+		result <- prefix
+		return
 	}
 
-	var result = make([]string, 0)
 	for _, s := range sets[0] {
-		result = append(result, doCartesianProduct(sets[1:], prefix+s)...)
+		wg.Add(1)
+		doCartesianProduct(sets[1:], prefix+s, wg, result)
 	}
-
-	return result
 }
 
 func parse(input string) ([]rule, []string) {
