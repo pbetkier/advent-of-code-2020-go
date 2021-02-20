@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-func day19(input string) int {
+func day19a(input string) int {
 	rules, messages := parse(input)
 
 	valid := toSet(validMessages(rules, 0))
@@ -32,7 +32,7 @@ func toSet(keys []string) map[string]struct{} {
 	return result
 }
 
-func validMessages(rules []rule, nextRuleIndex int) []string {
+func validMessages(rules map[int]rule, nextRuleIndex int) []string {
 	nextRule := rules[nextRuleIndex]
 
 	if nextRule.char != 0 {
@@ -79,7 +79,7 @@ func doCartesianProduct(sets [][]string, prefix string, wg *sync.WaitGroup, resu
 	}
 }
 
-func parse(input string) ([]rule, []string) {
+func parse(input string) (map[int]rule, []string) {
 	var messages = make([]string, 0)
 
 	split := strings.Split(input, "\n\n")
@@ -88,7 +88,7 @@ func parse(input string) ([]rule, []string) {
 	}
 
 	ruleLines := strings.Split(split[0], "\n")
-	var rules = make([]rule, len(ruleLines))
+	var rules = make(map[int]rule)
 	for _, s := range ruleLines {
 		split := strings.SplitN(s, ": ", 2)
 		if len(split) != 2 {
@@ -170,5 +170,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(day19(input))
+
+	fmt.Println(day19a(input))
+
+	mainB()
 }
