@@ -1,8 +1,9 @@
-package day20
+package main
 
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -69,4 +70,67 @@ func readTiles(filename string) ([]tile, error) {
 	}
 
 	return tiles, nil
+}
+
+func reverse(input string) string {
+	output := make([]uint8, len(input))
+	for i := 0; i < len(input); i++ {
+		output[i] = input[len(input)-1-i]
+	}
+	return string(output)
+}
+
+func day20(filename string) int {
+	tiles, err := readTiles(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	histogram := make(map[string]int)
+	for _, t := range tiles {
+		histogram[t.top] += 1
+		histogram[t.right] += 1
+		histogram[t.bottom] += 1
+		histogram[t.left] += 1
+	}
+
+	result := 1
+	for _, t := range tiles {
+		topOccurrences := histogram[t.top] + histogram[reverse(t.top)]
+		rightOccurrences := histogram[t.right] + histogram[reverse(t.right)]
+		bottomOccurences := histogram[t.bottom] + histogram[reverse(t.bottom)]
+		leftOccurrences := histogram[t.left] + histogram[reverse(t.left)]
+
+		if isCornerTile(t, topOccurrences, rightOccurrences, bottomOccurences, leftOccurrences) {
+			result *= t.id
+		}
+	}
+
+	return result
+}
+
+func isCornerTile(checked tile, occurrences ...int) bool {
+	ones := 0
+	for _, m := range occurrences {
+		switch m {
+		case 1:
+			ones += 1
+		case 2:
+			continue
+		default:
+			panic(fmt.Errorf("tile %v has border that doesn't occur 1 or 2 times", checked))
+		}
+	}
+
+	if ones > 2 {
+		panic(fmt.Errorf("tile %v has more than 2 borders that occur once", checked))
+	}
+
+	return ones == 2
+}
+
+func main() {
+	result := day20("day20/input")
+
+	fmt.Println(result)
 }
